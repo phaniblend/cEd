@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+/* cEd Brand Theme - Orange & Blue */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --primary-blue: #1E40AF;
+  --primary-blue-light: #3B82F6;
+  --accent-orange: #FF6B35;
+  --accent-orange-light: #FF8C5A;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Gradient banner styles */
+.gradient-banner {
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8C5A 100%);
+}
+
+/* Modern card styles */
+.card-modern {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.card-modern:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
