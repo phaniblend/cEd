@@ -1,0 +1,25 @@
+Folder PATH listing for volume Projects
+Volume serial number is D657-7106
+E:.
+|   .env
+|   backend_tree.txt
+|   be.bat
+|   package-lock.json
+|   package.json
+|   server.js
+|   tree.txt
+|   
++---config
++---controllers
+|       projectController.js
+|       
++---middleware
+|       authMiddleware.js
+|       
++---models
+|       Project.js
+|       
+\---routes
+        auth.js
+        project.js
+        
