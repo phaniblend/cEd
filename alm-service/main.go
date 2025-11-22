@@ -6,6 +6,7 @@ import (
 
 	"github.com/ced/alm-service/database"
 	"github.com/ced/alm-service/handlers"
+	"github.com/ced/alm-service/middleware"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
