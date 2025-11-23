@@ -10,6 +10,7 @@ import RecruiterDashboard from './pages/recruiter/Dashboard';
 import LearnerDetail from './pages/recruiter/LearnerDetail';
 import AppsCatalog from './pages/apps/Catalog';
 import AppDetail from './pages/apps/AppDetail';
+import AdminDashboard from './pages/admin/Dashboard';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/recruiter/learners/:learnerId" element={<LearnerDetail />} />
         <Route path="/apps" element={<AppsCatalog />} />
         <Route path="/apps/:slug" element={<AppDetail />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   );

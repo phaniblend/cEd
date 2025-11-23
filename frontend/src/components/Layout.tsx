@@ -75,6 +75,18 @@ export default function Layout({ children }: LayoutProps) {
                     App Catalog
                   </Link>
                 )}
+                {user?.role === UserRole.ADMIN && (
+                  <Link
+                    to="/admin/dashboard"
+                    className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/dashboard')
+                        ? 'bg-accent-purple text-white'
+                        : 'text-gray-300 hover:bg-dark-hover'
+                    }`}
+                  >
+                    Admin
+                  </Link>
+                )}
                 <Link
                   to="/apps"
                   className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${

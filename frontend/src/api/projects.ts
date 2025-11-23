@@ -6,6 +6,7 @@ export interface ProjectFilters {
   tag?: string;
   status?: string;
   featured?: boolean;
+  tech?: string;
 }
 
 export const projectsApi = {
@@ -15,6 +16,7 @@ export const projectsApi = {
     if (filters?.tag) params.append('tag', filters.tag);
     if (filters?.status) params.append('status', filters.status);
     if (filters?.featured !== undefined) params.append('featured', String(filters.featured));
+    if (filters?.tech) params.append('tech', filters.tech);
 
     const { data } = await api.get(`/projects?${params.toString()}`);
     return data;
@@ -27,6 +29,11 @@ export const projectsApi = {
 
   getBySlug: async (slug: string): Promise<{ success: boolean; project: Project }> => {
     const { data } = await api.get(`/projects/slug/${slug}`);
+    return data;
+  },
+
+  create: async (projectData: any): Promise<{ success: boolean; project: Project }> => {
+    const { data } = await api.post('/projects', projectData);
     return data;
   },
 };

@@ -70,6 +70,7 @@ export interface Task {
   projectId: string;
   title: string;
   description: string;
+  tech: string; // Tech identifier for filtering
   githubIssueNumber?: number;
   status: TaskStatus;
   difficulty: TaskDifficulty;

@@ -11,5 +11,10 @@ export const tasksApi = {
     const { data } = await api.get(`/tasks/${id}`);
     return data;
   },
+
+  create: async (projectId: string, taskData: any): Promise<{ success: boolean; task: Task }> => {
+    const { data } = await api.post(`/tasks/projects/${projectId}/tasks`, taskData);
+    return data;
+  },
 };
 
