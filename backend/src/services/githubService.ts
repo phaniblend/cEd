@@ -44,8 +44,9 @@ export const githubService = {
   async getInstallations() {
     try {
       const app = getGitHubApp();
-      // Use app-level authentication
-      const { data } = await app.octokit.rest.apps.listInstallations();
+      // Use app-level authentication - get a JWT-authenticated octokit
+      const octokit = await app.getInstallationOctokit(0);
+      const { data } = await octokit.request("GET /app/installations");
       return data;
     } catch (error) {
       logger.error("Failed to fetch installations", error);
@@ -69,7 +70,7 @@ export const githubService = {
     try {
       const app = getGitHubApp();
       const octokit = await app.getInstallationOctokit(installationId);
-      const { data } = await octokit.rest.apps.listInstallationReposForAuthenticatedUser({
+      const { data } = await octokit.request("GET /installation/repositories", {
         installation_id: installationId,
       });
       return data.repositories;
@@ -97,8 +98,9 @@ export const githubService = {
       const app = getGitHubApp();
       // For public repos, we can use app-level auth
       // For private repos, we'd need an installation token
-      // For MVP, try app-level first
-      const { data } = await app.octokit.rest.issues.listForRepo({
+      // For MVP, try app-level first - use installation 0 for app-level auth
+      const octokit = await app.getInstallationOctokit(0);
+      const { data } = await octokit.request("GET /repos/{owner}/{repo}/issues", {
         owner,
         repo,
         state: "open",
