@@ -8,6 +8,7 @@ export const getAllProjects = asyncHandler(async (req: Request, res: Response) =
     tag: req.query.tag as string | undefined,
     status: req.query.status as any,
     featured: req.query.featured === "true" ? true : req.query.featured === "false" ? false : undefined,
+    tech: req.query.tech as string | undefined, // Add tech filter for learners
   };
 
   const projects = await projectService.getAll(filters);
@@ -25,7 +26,8 @@ export const getProjectBySlug = asyncHandler(async (req: Request, res: Response)
 });
 
 export const createProject = asyncHandler(async (req: Request, res: Response) => {
-  const project = await projectService.create(req.body);
+  // Create project with GitHub repo and starter code
+  const project = await projectService.createWithGitHub(req.body);
   res.status(201).json({ success: true, project });
 });
 

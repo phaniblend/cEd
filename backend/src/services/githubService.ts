@@ -125,5 +125,106 @@ export const githubService = {
       throw new AppError(500, `Failed to fetch issues for ${owner}/${repo}`);
     }
   },
+
+  async createRepository(installationId: number, name: string, description: string, privateRepo: boolean = false) {
+    try {
+      const app = getGitHubApp();
+      const installations = await this.getInstallations();
+      const installation = installations.find((inst: any) => inst.id === installationId);
+      
+      if (!installation) {
+        throw new AppError(404, `Installation ${installationId} not found`);
+      }
+
+      const org = installation.account?.login;
+      if (!org) {
+        throw new AppError(400, "Installation account not found");
+      }
+
+      const octokit = await app.getInstallationOctokit(installationId);
+      const { data } = await octokit.request("POST /orgs/{org}/repos", {
+        org,
+        name,
+        description,
+        private: privateRepo,
+        auto_init: true, // Initialize with README
+      });
+
+      return data;
+    } catch (error: any) {
+      logger.error(`Failed to create repository ${name}`, error);
+      if (!config.github.appId || !config.github.privateKey) {
+        logger.warn("GitHub not configured, returning mock data");
+        return {
+          id: 1,
+          name,
+          full_name: `mock-org/${name}`,
+          html_url: `https://github.com/mock-org/${name}`,
+          clone_url: `https://github.com/mock-org/${name}.git`,
+        };
+      }
+      throw new AppError(500, `Failed to create repository: ${error.message || "Unknown error"}`);
+    }
+  },
+
+  async createIssue(installationId: number, owner: string, repo: string, title: string, body: string) {
+    try {
+      const app = getGitHubApp();
+      const octokit = await app.getInstallationOctokit(installationId);
+      const { data } = await octokit.request("POST /repos/{owner}/{repo}/issues", {
+        owner,
+        repo,
+        title,
+        body,
+      });
+
+      return data;
+    } catch (error: any) {
+      logger.error(`Failed to create issue in ${owner}/${repo}`, error);
+      if (!config.github.appId || !config.github.privateKey) {
+        logger.warn("GitHub not configured, returning mock data");
+        return {
+          id: 1,
+          number: 1,
+          title,
+          body,
+          state: "open",
+          html_url: `https://github.com/${owner}/${repo}/issues/1`,
+        };
+      }
+      throw new AppError(500, `Failed to create issue: ${error.message || "Unknown error"}`);
+    }
+  },
+
+  async createFile(installationId: number, owner: string, repo: string, path: string, content: string, message: string, branch: string = "main") {
+    try {
+      const app = getGitHubApp();
+      const octokit = await app.getInstallationOctokit(installationId);
+      
+      // Convert content to base64
+      const contentBase64 = Buffer.from(content, "utf-8").toString("base64");
+
+      const { data } = await octokit.request("PUT /repos/{owner}/{repo}/contents/{path}", {
+        owner,
+        repo,
+        path,
+        message,
+        content: contentBase64,
+        branch,
+      });
+
+      return data;
+    } catch (error: any) {
+      logger.error(`Failed to create file ${path} in ${owner}/${repo}`, error);
+      if (!config.github.appId || !config.github.privateKey) {
+        logger.warn("GitHub not configured, returning mock data");
+        return {
+          content: { path },
+          commit: { sha: "mock-sha" },
+        };
+      }
+      throw new AppError(500, `Failed to create file: ${error.message || "Unknown error"}`);
+    }
+  },
 };
 
