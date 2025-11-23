@@ -23,40 +23,66 @@ export const authService = {
   async register(input: RegisterInput) {
     const { name, email, password, role = UserRole.LEARNER, headline, skills = [] } = input;
 
-    // Check if user exists
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
-      throw new AppError(400, "User with this email already exists");
+    // Validate required fields
+    if (!name || !email || !password) {
+      throw new AppError(400, "Name, email, and password are required");
     }
 
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, 10);
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new AppError(400, "Invalid email format");
+    }
 
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        passwordHash,
-        role,
-        headline,
-        skills,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        headline: true,
-        skills: true,
-        createdAt: true,
-      },
-    });
+    // Validate password length
+    if (password.length < 6) {
+      throw new AppError(400, "Password must be at least 6 characters");
+    }
 
-    // Generate token
-    const token = jwt.sign({ userId: user.id }, config.jwtSecret, { expiresIn: "7d" });
+    try {
+      // Check if user exists
+      const existing = await prisma.user.findUnique({ where: { email } });
+      if (existing) {
+        throw new AppError(400, "User with this email already exists");
+      }
 
-    return { user, token };
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      // Create user
+      const user = await prisma.user.create({
+        data: {
+          name,
+          email,
+          passwordHash,
+          role,
+          headline,
+          skills,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          headline: true,
+          skills: true,
+          createdAt: true,
+        },
+      });
+
+      // Generate token
+      const token = jwt.sign({ userId: user.id }, config.jwtSecret, { expiresIn: "7d" });
+
+      return { user, token };
+    } catch (error: any) {
+      // If it's already an AppError, re-throw it
+      if (error instanceof AppError) {
+        throw error;
+      }
+      // Log database errors for debugging
+      console.error("Database error during registration:", error);
+      throw new AppError(500, `Registration failed: ${error.message || "Database error"}`);
+    }
   },
 
   async login(input: LoginInput) {
