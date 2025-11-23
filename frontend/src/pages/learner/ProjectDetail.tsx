@@ -4,7 +4,7 @@ import { projectsApi } from '../../api/projects';
 import { tasksApi } from '../../api/tasks';
 import Layout from '../../components/Layout';
 import ProtectedRoute from '../../components/ProtectedRoute';
-import { UserRole, TaskStatus } from '../../types';
+import { UserRole, TaskStatus, ProjectDifficulty } from '../../types';
 import { useState } from 'react';
 
 export default function ProjectDetail() {
@@ -26,11 +26,40 @@ export default function ProjectDetail() {
   const project = projectData?.project;
   const tasks = tasksData?.tasks || [];
 
+  const getDifficultyColor = (difficulty: ProjectDifficulty) => {
+    switch (difficulty) {
+      case ProjectDifficulty.BEGINNER:
+        return 'bg-accent-green/20 text-accent-green border-accent-green/30';
+      case ProjectDifficulty.INTERMEDIATE:
+        return 'bg-accent-orange/20 text-accent-orange border-accent-orange/30';
+      case ProjectDifficulty.ADVANCED:
+        return 'bg-accent-red/20 text-accent-red border-accent-red/30';
+      default:
+        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+    }
+  };
+
+  const getStatusColor = (status: TaskStatus) => {
+    switch (status) {
+      case TaskStatus.OPEN:
+        return 'bg-accent-green/20 text-accent-green border-accent-green/30';
+      case TaskStatus.IN_PROGRESS:
+        return 'bg-accent-orange/20 text-accent-orange border-accent-orange/30';
+      case TaskStatus.COMPLETED:
+        return 'bg-accent-blue/20 text-accent-blue border-accent-blue/30';
+      default:
+        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+    }
+  };
+
   if (projectLoading) {
     return (
       <Layout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">Loading project...</div>
+          <div className="card text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-accent-purple"></div>
+            <p className="mt-4 text-gray-400">Loading project...</p>
+          </div>
         </div>
       </Layout>
     );
@@ -40,7 +69,9 @@ export default function ProjectDetail() {
     return (
       <Layout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">Project not found</div>
+          <div className="card text-center py-12">
+            <p className="text-gray-400">Project not found</p>
+          </div>
         </div>
       </Layout>
     );
@@ -55,65 +86,78 @@ export default function ProjectDetail() {
           <div className="mb-6">
             <Link
               to="/learner/dashboard"
-              className="text-blue-600 hover:text-blue-700 text-sm"
+              className="text-accent-purple hover:text-purple-400 text-sm inline-flex items-center gap-2"
             >
-              ← Back to Dashboard
+              <span>←</span> Back to Dashboard
             </Link>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              {project.title}
-            </h1>
-            <p className="text-gray-600 mb-4">{project.description}</p>
+          <div className="card mb-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold text-white mb-4">
+                  {project.title}
+                </h1>
+                <p className="text-gray-400 text-lg mb-6">{project.description}</p>
+              </div>
+              {project.featured && (
+                <span className="ml-4 px-3 py-1 text-sm bg-accent-purple/20 text-accent-purple rounded-full border border-accent-purple/30">
+                  Featured
+                </span>
+              )}
+            </div>
 
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-6">
               {project.techStack.map((tech) => (
                 <span
                   key={tech}
-                  className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded"
+                  className="px-3 py-1 text-sm bg-accent-blue/20 text-accent-blue rounded-full border border-accent-blue/30"
                 >
                   {tech}
                 </span>
               ))}
             </div>
 
-            <div className="flex items-center space-x-4 text-sm text-gray-600">
-              <span>Difficulty: {project.difficulty}</span>
-              <span>•</span>
+            <div className="flex items-center space-x-6 text-sm">
+              <span className={`px-3 py-1 rounded-full border ${getDifficultyColor(project.difficulty)}`}>
+                {project.difficulty}
+              </span>
               <a
                 href={githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
+                className="text-accent-blue hover:text-blue-400 inline-flex items-center gap-2"
               >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
                 View on GitHub
               </a>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow">
-            <div className="border-b border-gray-200">
-              <nav className="flex -mb-px">
+          <div className="card p-0 overflow-hidden">
+            <div className="border-b border-dark-border">
+              <nav className="flex">
                 <button
                   onClick={() => setActiveTab('overview')}
-                  className={`px-6 py-3 text-sm font-medium ${
+                  className={`px-6 py-4 text-sm font-medium transition-colors ${
                     activeTab === 'overview'
-                      ? 'border-b-2 border-blue-500 text-blue-600'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'border-b-2 border-accent-purple text-accent-purple bg-dark-hover'
+                      : 'text-gray-400 hover:text-white hover:bg-dark-hover'
                   }`}
                 >
                   Overview
                 </button>
                 <button
                   onClick={() => setActiveTab('tasks')}
-                  className={`px-6 py-3 text-sm font-medium ${
+                  className={`px-6 py-4 text-sm font-medium transition-colors ${
                     activeTab === 'tasks'
-                      ? 'border-b-2 border-blue-500 text-blue-600'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'border-b-2 border-accent-purple text-accent-purple bg-dark-hover'
+                      : 'text-gray-400 hover:text-white hover:bg-dark-hover'
                   }`}
                 >
-                  Tasks
+                  Tasks ({tasks.length})
                 </button>
               </nav>
             </div>
@@ -121,64 +165,64 @@ export default function ProjectDetail() {
             <div className="p-6">
               {activeTab === 'overview' ? (
                 <div>
-                  <h2 className="text-xl font-semibold mb-4">About this project</h2>
-                  <p className="text-gray-600 mb-4">{project.description}</p>
+                  <h2 className="text-2xl font-semibold text-white mb-4">About this project</h2>
+                  <p className="text-gray-400 mb-6 leading-relaxed">{project.description}</p>
                   <div>
-                    <h3 className="font-semibold mb-2">Tech Stack</h3>
-                    <ul className="list-disc list-inside text-gray-600">
+                    <h3 className="text-lg font-semibold text-white mb-3">Tech Stack</h3>
+                    <div className="flex flex-wrap gap-2">
                       {project.techStack.map((tech) => (
-                        <li key={tech}>{tech}</li>
+                        <span
+                          key={tech}
+                          className="px-3 py-1 text-sm bg-accent-blue/20 text-accent-blue rounded-full border border-accent-blue/30"
+                        >
+                          {tech}
+                        </span>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 </div>
               ) : (
                 <div>
-                  <h2 className="text-xl font-semibold mb-4">Available Tasks</h2>
+                  <h2 className="text-2xl font-semibold text-white mb-4">Available Tasks</h2>
                   {tasksLoading ? (
-                    <div>Loading tasks...</div>
+                    <div className="text-center py-8">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-accent-purple"></div>
+                      <p className="mt-4 text-gray-400">Loading tasks...</p>
+                    </div>
                   ) : tasks.length === 0 ? (
-                    <div className="text-gray-500">No tasks available</div>
+                    <div className="text-center py-8 text-gray-400">No tasks available</div>
                   ) : (
                     <div className="space-y-4">
                       {tasks.map((task) => (
                         <div
                           key={task.id}
-                          className="border border-gray-200 rounded-lg p-4"
+                          className="card border-dark-border hover:border-accent-purple/50 transition-colors"
                         >
-                          <div className="flex justify-between items-start mb-2">
-                            <h3 className="text-lg font-semibold">{task.title}</h3>
-                            <span
-                              className={`px-2 py-1 text-xs rounded ${
-                                task.status === TaskStatus.OPEN
-                                  ? 'bg-green-100 text-green-800'
-                                  : task.status === TaskStatus.IN_PROGRESS
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-gray-100 text-gray-800'
-                              }`}
-                            >
-                              {task.status}
+                          <div className="flex justify-between items-start mb-3">
+                            <h3 className="text-lg font-semibold text-white">{task.title}</h3>
+                            <span className={`px-3 py-1 text-xs rounded-full border ${getStatusColor(task.status)}`}>
+                              {task.status.replace('_', ' ')}
                             </span>
                           </div>
-                          <p className="text-gray-600 text-sm mb-3">{task.description}</p>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                          <p className="text-gray-400 text-sm mb-4">{task.description}</p>
+                          <div className="flex items-center justify-between pt-4 border-t border-dark-border">
+                            <div className="flex items-center space-x-4 text-sm text-gray-400">
                               <span>Difficulty: {task.difficulty}</span>
                               {task.githubIssueNumber && (
                                 <a
                                   href={`${githubUrl}/issues/${task.githubIssueNumber}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-blue-600 hover:underline"
+                                  className="text-accent-blue hover:text-blue-400"
                                 >
-                                  View Issue #{task.githubIssueNumber}
+                                  Issue #{task.githubIssueNumber}
                                 </a>
                               )}
                             </div>
                             {task.status === TaskStatus.OPEN && (
                               <Link
                                 to={`/learner/tasks/${task.id}`}
-                                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+                                className="btn-primary text-sm"
                               >
                                 Start Task
                               </Link>
@@ -186,7 +230,7 @@ export default function ProjectDetail() {
                             {task.status === TaskStatus.IN_PROGRESS && (
                               <Link
                                 to={`/learner/tasks/${task.id}`}
-                                className="px-4 py-2 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700"
+                                className="btn-secondary text-sm"
                               >
                                 Continue
                               </Link>
@@ -205,4 +249,3 @@ export default function ProjectDetail() {
     </ProtectedRoute>
   );
 }
-

@@ -55,7 +55,6 @@ export default function TaskWorkbench() {
   const handleAskHelp = (e: React.FormEvent) => {
     e.preventDefault();
     setShowHelpResponse(true);
-    // Simulate AI response
     setTimeout(() => {
       setShowHelpResponse(false);
       alert('AI Help: This is a placeholder response. In a real implementation, this would connect to an AI service.');
@@ -66,7 +65,10 @@ export default function TaskWorkbench() {
     return (
       <Layout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">Loading task...</div>
+          <div className="card text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-accent-purple"></div>
+            <p className="mt-4 text-gray-400">Loading task...</p>
+          </div>
         </div>
       </Layout>
     );
@@ -76,7 +78,9 @@ export default function TaskWorkbench() {
     return (
       <Layout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">Task not found</div>
+          <div className="card text-center py-12">
+            <p className="text-gray-400">Task not found</p>
+          </div>
         </div>
       </Layout>
     );
@@ -94,47 +98,47 @@ export default function TaskWorkbench() {
           <div className="mb-6">
             <Link
               to={`/learner/projects/${project.id}`}
-              className="text-blue-600 hover:text-blue-700 text-sm"
+              className="text-accent-purple hover:text-purple-400 text-sm inline-flex items-center gap-2"
             >
-              ← Back to Project
+              <span>←</span> Back to Project
             </Link>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow p-6 mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 mb-4">{task.title}</h1>
-                <p className="text-gray-600 mb-6">{task.description}</p>
+              <div className="card mb-6">
+                <h1 className="text-3xl font-bold text-white mb-4">{task.title}</h1>
+                <p className="text-gray-400 mb-6 leading-relaxed">{task.description}</p>
 
-                <div className="mb-6">
-                  <h2 className="text-lg font-semibold mb-3">How to work on this task</h2>
-                  <div className="space-y-2 text-sm text-gray-600">
+                <div className="mb-6 p-4 bg-dark-hover rounded-lg border border-dark-border">
+                  <h2 className="text-lg font-semibold text-white mb-3">How to work on this task</h2>
+                  <div className="space-y-2 text-sm text-gray-300">
                     <p>
-                      <strong>Repository:</strong>{' '}
+                      <strong className="text-white">Repository:</strong>{' '}
                       <a
                         href={githubRepoUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
+                        className="text-accent-blue hover:text-blue-400"
                       >
                         {project.githubOrg}/{project.githubRepo}
                       </a>
                     </p>
                     {githubIssueUrl && (
                       <p>
-                        <strong>Issue:</strong>{' '}
+                        <strong className="text-white">Issue:</strong>{' '}
                         <a
                           href={githubIssueUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
+                          className="text-accent-blue hover:text-blue-400"
                         >
                           #{task.githubIssueNumber}
                         </a>
                       </p>
                     )}
                     <p>
-                      <strong>Difficulty:</strong> {task.difficulty}
+                      <strong className="text-white">Difficulty:</strong> {task.difficulty}
                     </p>
                   </div>
                 </div>
@@ -144,25 +148,26 @@ export default function TaskWorkbench() {
                     <button
                       onClick={() => claimMutation.mutate()}
                       disabled={claimMutation.isPending}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                      className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {claimMutation.isPending ? 'Claiming...' : 'Start Task'}
                     </button>
                   </div>
                 ) : (
                   <div>
-                    <div className="mb-4 p-4 bg-gray-50 rounded-md">
-                      <p className="text-sm text-gray-600 mb-2">
-                        <strong>Status:</strong> {existingClaim.status}
+                    <div className="mb-4 p-4 bg-dark-hover rounded-lg border border-dark-border">
+                      <p className="text-sm text-gray-300 mb-2">
+                        <strong className="text-white">Status:</strong>{' '}
+                        <span className="text-accent-purple">{existingClaim.status}</span>
                       </p>
                       {existingClaim.githubPullRequestUrl && (
                         <p className="text-sm">
-                          <strong>PR:</strong>{' '}
+                          <strong className="text-white">PR:</strong>{' '}
                           <a
                             href={existingClaim.githubPullRequestUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
+                            className="text-accent-blue hover:text-blue-400 break-all"
                           >
                             {existingClaim.githubPullRequestUrl}
                           </a>
@@ -173,7 +178,7 @@ export default function TaskWorkbench() {
                     {existingClaim.status === TaskClaimStatus.CLAIMED && (
                       <form onSubmit={handleSubmitPR} className="space-y-4">
                         <div>
-                          <label htmlFor="pr-url" className="block text-sm font-medium text-gray-700 mb-2">
+                          <label htmlFor="pr-url" className="block text-sm font-medium text-gray-300 mb-2">
                             GitHub Pull Request URL
                           </label>
                           <input
@@ -182,14 +187,14 @@ export default function TaskWorkbench() {
                             value={prUrl}
                             onChange={(e) => setPrUrl(e.target.value)}
                             placeholder="https://github.com/owner/repo/pull/123"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            className="input-field w-full"
                             required
                           />
                         </div>
                         <button
                           type="submit"
                           disabled={submitMutation.isPending}
-                          className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {submitMutation.isPending ? 'Submitting...' : 'Submit PR'}
                         </button>
@@ -197,21 +202,21 @@ export default function TaskWorkbench() {
                     )}
 
                     {existingClaim.status === TaskClaimStatus.SUBMITTED && (
-                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-                        <p className="text-sm text-yellow-800">
+                      <div className="p-4 bg-accent-orange/10 border border-accent-orange/30 rounded-lg">
+                        <p className="text-sm text-accent-orange">
                           Your PR has been submitted and is awaiting review.
                         </p>
                       </div>
                     )}
 
                     {existingClaim.status === TaskClaimStatus.ACCEPTED && (
-                      <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-                        <p className="text-sm text-green-800">
-                          Congratulations! Your PR has been accepted.
+                      <div className="p-4 bg-accent-green/10 border border-accent-green/30 rounded-lg">
+                        <p className="text-sm text-accent-green font-semibold mb-2">
+                          🎉 Congratulations! Your PR has been accepted.
                         </p>
                         {existingClaim.reviewNotes && (
-                          <p className="text-sm text-green-700 mt-2">
-                            <strong>Review Notes:</strong> {existingClaim.reviewNotes}
+                          <p className="text-sm text-gray-300 mt-2">
+                            <strong className="text-white">Review Notes:</strong> {existingClaim.reviewNotes}
                           </p>
                         )}
                       </div>
@@ -222,25 +227,30 @@ export default function TaskWorkbench() {
             </div>
 
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow p-6 sticky top-4">
-                <h2 className="text-lg font-semibold mb-4">Need help?</h2>
+              <div className="card sticky top-4">
+                <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-accent-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Need help?
+                </h2>
                 <form onSubmit={handleAskHelp} className="space-y-4">
                   <textarea
                     value={helpQuestion}
                     onChange={(e) => setHelpQuestion(e.target.value)}
                     placeholder="Ask a question about this task..."
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="input-field w-full resize-none"
                   />
                   <button
                     type="submit"
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    className="btn-primary w-full"
                   >
                     Ask AI Assistant
                   </button>
                 </form>
                 {showHelpResponse && (
-                  <div className="mt-4 p-3 bg-blue-50 rounded-md text-sm text-blue-800">
+                  <div className="mt-4 p-3 bg-accent-blue/10 border border-accent-blue/30 rounded-lg text-sm text-accent-blue">
                     Processing your question...
                   </div>
                 )}
@@ -255,4 +265,3 @@ export default function TaskWorkbench() {
     </ProtectedRoute>
   );
 }
-
