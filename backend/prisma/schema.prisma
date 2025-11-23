@@ -94,7 +94,7 @@ model Task {
   projectId         String
   title             String
   description       String        @db.Text
-  tech              String        // Tech identifier for filtering (e.g., "react", "vue", "angular")
+  tech              String        @default("general") // Tech identifier for filtering (e.g., "react", "vue", "angular")
   githubIssueNumber Int?
   status            TaskStatus    @default(OPEN)
   difficulty        TaskDifficulty @default(EASY)
