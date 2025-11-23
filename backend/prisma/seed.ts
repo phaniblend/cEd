@@ -69,6 +69,7 @@ async function main() {
       status: ProjectStatus.ACTIVE,
       tags: ["todo-app", "frontend", "react"],
       featured: true,
+      liveAppUrl: "https://react-todo-demo.example.com",
     },
   });
 
@@ -84,6 +85,7 @@ async function main() {
       status: ProjectStatus.ACTIVE,
       tags: ["crm", "backend", "fullstack"],
       featured: true,
+      liveAppUrl: "https://crm-lite-demo.example.com",
     },
   });
 
@@ -99,6 +101,7 @@ async function main() {
       status: ProjectStatus.ACTIVE,
       tags: ["kanban", "project-management", "fullstack"],
       featured: true,
+      liveAppUrl: "https://kanban-demo.example.com",
     },
   });
 

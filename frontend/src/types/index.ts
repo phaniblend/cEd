@@ -59,6 +59,7 @@ export interface Project {
   status: ProjectStatus;
   tags: string[];
   featured: boolean;
+  liveAppUrl?: string;
   createdAt: string;
   updatedAt: string;
   tasks?: Task[];

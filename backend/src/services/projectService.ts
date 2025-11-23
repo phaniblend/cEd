@@ -13,6 +13,7 @@ export interface CreateProjectInput {
   status?: ProjectStatus;
   tags: string[];
   featured?: boolean;
+  liveAppUrl?: string;
 }
 
 export interface UpdateProjectInput {
@@ -23,6 +24,7 @@ export interface UpdateProjectInput {
   status?: ProjectStatus;
   tags?: string[];
   featured?: boolean;
+  liveAppUrl?: string;
 }
 
 export interface ProjectFilters {

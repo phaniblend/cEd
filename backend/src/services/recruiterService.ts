@@ -83,6 +83,8 @@ export const recruiterService = {
                     title: true,
                     slug: true,
                     techStack: true,
+                    liveAppUrl: true,
+                    featured: true,
                   },
                 },
               },

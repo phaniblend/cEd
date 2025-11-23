@@ -1,0 +1,757 @@
+CODEBASE CONSOLIDATION
+Generated: 2025-11-22 18:04:58
+Root Path: E:\cEd-GH
+================================================================================
+
+================================================================================
+codebase_consolidated_20251122_180458.txt:
+================================================================================
+
+
+================================================================================
+LIBRARY FOLDER (skipped): backend\node_modules
+================================================================================
+
+================================================================================
+LIBRARY FOLDER (skipped): backend\logs
+================================================================================
+
+================================================================================
+backend\README.md:
+================================================================================
+
+
+================================================================================
+backend\index.js:
+================================================================================
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+
+// Load env
+dotenv.config();
+
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json({ limit: "2mb" }));
+
+// Routes
+import webhookRoutes from "./src/routes/webhookRoutes.js";
+import repoRoutes from "./src/routes/repoRoutes.js";
+import authRoutes from "./src/routes/authRoutes.js";
+import userRoutes from "./src/routes/userRoutes.js";
+import githubInstallationsRoutes from "./routes/githubInstallationsRoutes.js";
+
+
+app.use("/users", userRoutes);
+app.use("/webhooks", webhookRoutes);
+app.use("/repos", repoRoutes);
+app.use("/auth", authRoutes);
+app.use("/api/github/installations", githubInstallationsRoutes);
+
+
+// Simple health check
+app.get("/", (req, res) => {
+  res.json({ status: "cEd backend running" });
+});
+
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`cEd backend running on port ${PORT}`);
+});
+
+
+================================================================================
+backend\package.json:
+================================================================================
+{
+  "name": "ced-backend",
+  "version": "1.0.0",
+  "description": "Backend server for cEd GitHub-integrated developer platform",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "@octokit/app": "^13.0.0",
+    "@octokit/request": "^8.1.1",
+    "@octokit/webhooks": "^12.0.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
+
+
+================================================================================
+backend\config\github.js:
+================================================================================
+import fs from "fs";
+
+export const GITHUB_CONFIG = {
+  appId: process.env.GH_APP_ID,
+  clientId: process.env.GH_CLIENT_ID,
+  clientSecret: process.env.GH_CLIENT_SECRET,
+  webhookSecret: process.env.GH_WEBHOOK_SECRET,
+  privateKey: fs.readFileSync(
+    "E:/cEd-GH/backend/secrets/contributebe.2025-11-22.private-key.pem",
+    "utf8"
+  ),
+  org: process.env.GH_ORG || "icontributed",
+  apiBase: "https://api.github.com"
+};
+
+
+================================================================================
+backend\config\routes.js:
+================================================================================
+
+
+================================================================================
+backend\config\server.js:
+================================================================================
+export const SERVER_CONFIG = {
+  port: process.env.PORT || 5000,
+  env: process.env.NODE_ENV || "development"
+};
+
+
+================================================================================
+backend\routes\githubInstallationsRoutes.js:
+================================================================================
+import express from "express";
+import { listInstallations } from "../controllers/githubInstallationsController.js";
+
+const router = express.Router();
+
+router.get("/", listInstallations);
+
+export default router;
+
+
+================================================================================
+backend\src\controllers\authController.js:
+================================================================================
+export function login(req, res) {
+  const { email } = req.body;
+
+  // Dummy login for MVP — replace later with JWT + DB
+  if (!email) {
+    return res.status(400).json({ error: "Email required" });
+  }
+
+  return res.json({
+    success: true,
+    user: { email, role: "learner" }
+  });
+}
+
+export function register(req, res) {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email required" });
+  }
+
+  return res.json({
+    success: true,
+    user: { email, role: "learner" }
+  });
+}
+
+
+================================================================================
+backend\src\controllers\githubInstallationsController.js:
+================================================================================
+import { getAppClient } from "../services/githubAppService.js";
+
+export async function listInstallations(req, res) {
+  try {
+    const app = getAppClient();
+    const installations = await app.apps.listInstallations();
+    return res.json({ success: true, installations });
+  } catch (err) {
+    console.error("Error listing installations:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+
+================================================================================
+backend\src\controllers\repoController.js:
+================================================================================
+import {
+  createRepo,
+  createBranch,
+  commitFile,
+  createPullRequest
+} from "../services/repoService.js";
+
+export async function createRepository(req, res) {
+  try {
+    const { installationId, repoName } = req.body;
+
+    const repo = await createRepo(installationId, repoName);
+
+    return res.json({ success: true, repo });
+  } catch (err) {
+    console.error("Repo creation error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function createTaskBranch(req, res) {
+  try {
+    const { installationId, repo, branchName } = req.body;
+
+    const branch = await createBranch(installationId, repo, branchName);
+
+    return res.json({ success: true, branch });
+  } catch (err) {
+    console.error("Branch creation error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function commitToRepo(req, res) {
+  try {
+    const { installationId, repo, path, content, branch } = req.body;
+
+    const result = await commitFile(installationId, repo, path, content, branch);
+
+    return res.json({ success: true, result });
+  } catch (err) {
+    console.error("Commit error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function openPullRequest(req, res) {
+  try {
+    const { installationId, repo, title, body, base, head } = req.body;
+
+    const pr = await createPullRequest(
+      installationId,
+      repo,
+      title,
+      body,
+      base,
+      head
+    );
+
+    return res.json({ success: true, pr });
+  } catch (err) {
+    console.error("PR error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+================================================================================
+backend\src\controllers\userController.js:
+================================================================================
+import { getUserByEmail, createUser } from "../services/userService.js";
+
+export async function fetchUser(req, res) {
+  const { email } = req.params;
+  const user = await getUserByEmail(email);
+  return res.json({ success: true, user });
+}
+
+export async function addUser(req, res) {
+  const { email } = req.body;
+  const user = await createUser(email);
+  return res.json({ success: true, user });
+}
+
+
+================================================================================
+backend\src\controllers\webhookController.js:
+================================================================================
+// Not used directly — webhookRoutes calls handler directly.
+// Keeping file for future expansion.
+
+export function webhookTest(req, res) {
+  return res.json({ ok: true, source: "webhookController" });
+}
+
+
+================================================================================
+backend\src\routes\authRoutes.js:
+================================================================================
+import express from "express";
+import { login, register } from "../controllers/authController.js";
+
+const router = express.Router();
+
+router.post("/login", login);
+router.post("/register", register);
+
+export default router;
+
+
+================================================================================
+backend\src\routes\githubInstallationsRoutes.js:
+================================================================================
+import express from "express";
+import { listInstallations } from "../controllers/githubInstallationsController.js";
+
+const router = express.Router();
+
+router.get("/", listInstallations);
+
+export default router;
+
+
+================================================================================
+backend\src\routes\githubRoutes.js:
+================================================================================
+import express from "express";
+import {
+  handleInstallation,
+  handleWebhook,
+} from "../controllers/githubController.js";
+import { fetchInstallations } from "../services/githubService.js";
+
+const router = express.Router();
+
+// Webhook receiver
+router.post("/webhook", handleWebhook);
+
+// Installation CREATE callback (GitHub hits this)
+router.post("/installations", handleInstallation);
+
+// Installation FETCH (You hit this in browser)
+router.get("/installations", async (req, res) => {
+  try {
+    const installations = await fetchInstallations();
+    return res.json({ success: true, installations });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+export default router;
+
+
+================================================================================
+backend\src\routes\repoRoutes.js:
+================================================================================
+import express from "express";
+import {
+  createRepository,
+  createTaskBranch,
+  commitToRepo,
+  openPullRequest
+} from "../controllers/repoController.js";
+
+const router = express.Router();
+
+router.post("/create", createRepository);
+router.post("/branch", createTaskBranch);
+router.post("/commit", commitToRepo);
+router.post("/pr", openPullRequest);
+
+export default router;
+
+
+================================================================================
+backend\src\routes\userRoutes.js:
+================================================================================
+import express from "express";
+import { getUserByEmail } from "../services/userService.js";
+
+const router = express.Router();
+
+router.get("/:email", async (req, res) => {
+  const user = await getUserByEmail(req.params.email);
+  return res.json({ success: true, user });
+});
+
+export default router;
+
+
+================================================================================
+backend\src\routes\webhookRoutes.js:
+================================================================================
+import express from "express";
+import { githubWebhookHandler } from "../webhooks/githubWebhookHandler.js";
+
+const router = express.Router();
+
+router.post("/", express.json({ type: "*/*" }), githubWebhookHandler);
+
+export default router;
+
+
+================================================================================
+backend\src\services\githubAppService.js:
+================================================================================
+import { request } from "@octokit/request";
+import { GITHUB_CONFIG } from "../../config/github.js";
+import { generateAppJwt } from "./jwtService.js";
+
+export async function getInstallationToken(installationId) {
+  const jwt = generateAppJwt();
+
+  const res = await request("POST /app/installations/{installation_id}/access_tokens", {
+    installation_id: installationId,
+    headers: {
+      authorization: `Bearer ${jwt}`,
+      accept: "application/vnd.github+json"
+    }
+  });
+
+  return res.data.token;
+}
+
+export async function listInstallations() {
+  const jwt = generateAppJwt();
+
+  const res = await request("GET /app/installations", {
+    headers: {
+      authorization: `Bearer ${jwt}`,
+      accept: "application/vnd.github+json"
+    }
+  });
+
+  return res.data;
+}
+
+
+================================================================================
+backend\src\services\githubService.js:
+================================================================================
+import { App } from "octokit";
+import fs from "fs";
+import path from "path";
+
+const APP_ID = process.env.GITHUB_APP_ID;
+const PRIVATE_KEY = fs.readFileSync(
+  path.resolve("secrets/contributebe.2025-11-22.private-key.pem"),
+  "utf8"
+);
+const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+
+function getGitHubApp() {
+  return new App({
+    appId: APP_ID,
+    privateKey: PRIVATE_KEY,
+    oauth: {
+      clientId: CLIENT_ID,
+      clientSecret: CLIENT_SECRET,
+    },
+  });
+}
+
+export async function fetchInstallations() {
+  const app = getGitHubApp();
+  const res = await app.octokit.request("GET /app/installations");
+  return res.data;
+}
+
+export async function createInstallationAccessToken(installationId) {
+  const app = getGitHubApp();
+  const token = await app.getInstallationAccessToken({ installationId });
+  return token;
+}
+
+export default {
+  fetchInstallations,
+  createInstallationAccessToken,
+};
+
+
+================================================================================
+backend\src\services\jwtService.js:
+================================================================================
+import jwt from "jsonwebtoken";
+import { GITHUB_CONFIG } from "../../config/github.js";
+
+export function generateAppJwt() {
+  const now = Math.floor(Date.now() / 1000);
+
+  const payload = {
+    iat: now,
+    exp: now + (10 * 60),
+    iss: GITHUB_CONFIG.appId
+  };
+
+  return jwt.sign(payload, GITHUB_CONFIG.privateKey, {
+    algorithm: "RS256"
+  });
+}
+
+
+================================================================================
+backend\src\services\repoService.js:
+================================================================================
+import { request } from "@octokit/request";
+import { GITHUB_CONFIG } from "../../config/github.js";
+import { getInstallationToken } from "./githubAppService.js";
+
+export async function createRepo(installationId, repoName) {
+  const token = await getInstallationToken(installationId);
+
+  const res = await request("POST /orgs/{org}/repos", {
+    org: GITHUB_CONFIG.org,
+    name: repoName,
+    private: true,
+    headers: {
+      authorization: `token ${token}`,
+      accept: "application/vnd.github+json"
+    }
+  });
+
+  return res.data;
+}
+
+export async function createBranch(installationId, repo, newBranch) {
+  const token = await getInstallationToken(installationId);
+
+  const { data: defaultBranch } = await request(
+    "GET /repos/{owner}/{repo}/branches/{branch}",
+    {
+      owner: GITHUB_CONFIG.org,
+      repo,
+      branch: "main",
+      headers: {
+        authorization: `token ${token}`,
+        accept: "application/vnd.github+json"
+      }
+    }
+  );
+
+  const sha = defaultBranch.commit.sha;
+
+  const res = await request("POST /repos/{owner}/{repo}/git/refs", {
+    owner: GITHUB_CONFIG.org,
+    repo,
+    ref: `refs/heads/${newBranch}`,
+    sha,
+    headers: {
+      authorization: `token ${token}`,
+      accept: "application/vnd.github+json"
+    }
+  });
+
+  return res.data;
+}
+
+export async function commitFile(
+  installationId,
+  repo,
+  filePath,
+  content,
+  branch
+) {
+  const token = await getInstallationToken(installationId);
+
+  const buff = Buffer.from(content, "utf8").toString("base64");
+
+  const res = await request("PUT /repos/{owner}/{repo}/contents/{path}", {
+    owner: GITHUB_CONFIG.org,
+    repo,
+    path: filePath,
+    message: `cEd commit: updating ${filePath}`,
+    content: buff,
+    branch,
+    headers: {
+      authorization: `token ${token}`,
+      accept: "application/vnd.github+json"
+    }
+  });
+
+  return res.data;
+}
+
+export async function createPullRequest(
+  installationId,
+  repo,
+  title,
+  body,
+  base = "main",
+  head = "task-branch"
+) {
+  const token = await getInstallationToken(installationId);
+
+  const res = await request("POST /repos/{owner}/{repo}/pulls", {
+    owner: GITHUB_CONFIG.org,
+    repo,
+    title,
+    body,
+    head,
+    base,
+    headers: {
+      authorization: `token ${token}`,
+      accept: "application/vnd.github+json"
+    }
+  });
+
+  return res.data;
+}
+
+
+================================================================================
+backend\src\services\userService.js:
+================================================================================
+// Placeholder user service (no DB yet)
+
+export async function getUserByEmail(email) {
+  return { email, role: "learner" };
+}
+
+export async function createUser(email) {
+  return { email, role: "learner" };
+}
+
+
+================================================================================
+backend\src\utils\errorHandler.js:
+================================================================================
+export function handleError(res, message, status = 500) {
+  return res.status(status).json({
+    success: false,
+    error: message
+  });
+}
+
+
+================================================================================
+backend\src\utils\httpResponse.js:
+================================================================================
+export function ok(res, data = {}) {
+  return res.status(200).json({
+    success: true,
+    data
+  });
+}
+
+export function fail(res, message = "Something went wrong", status = 400) {
+  return res.status(status).json({
+    success: false,
+    error: message
+  });
+}
+
+
+================================================================================
+backend\src\utils\logger.js:
+================================================================================
+export function log(...args) {
+  console.log("[cEd]", ...args);
+}
+
+export function error(...args) {
+  console.error("[cEd:ERROR]", ...args);
+}
+
+
+================================================================================
+backend\src\utils\verifySignature.js:
+================================================================================
+import crypto from "crypto";
+import { GITHUB_CONFIG } from "../../config/github.js";
+
+export function verifyWebhookSignature(payload, signature) {
+  const hmac = crypto.createHmac("sha256", GITHUB_CONFIG.webhookSecret);
+  const digest = `sha256=${hmac.update(payload).digest("hex")}`;
+
+  return crypto.timingSafeEqual(
+    Buffer.from(digest),
+    Buffer.from(signature)
+  );
+}
+
+
+================================================================================
+backend\src\webhooks\eventTypes.js:
+================================================================================
+export const EVENT_TYPES = {
+  PUSH: "push",
+  PR: "pull_request",
+  ISSUES: "issues",
+  INSTALLATION: "installation",
+  INSTALLATION_REPOS: "installation_repositories"
+};
+
+
+================================================================================
+backend\src\webhooks\githubWebhookHandler.js:
+================================================================================
+import { verifyWebhookSignature } from "../utils/verifySignature.js";
+
+export function githubWebhookHandler(req, res) {
+  const signature = req.headers["x-hub-signature-256"];
+  const body = JSON.stringify(req.body);
+
+  if (!signature || !verifyWebhookSignature(body, signature)) {
+    return res.status(401).json({ error: "Invalid signature" });
+  }
+
+  const event = req.headers["x-github-event"];
+
+  console.log("💬 Webhook event:", event);
+
+  switch (event) {
+    case "push":
+      console.log("Push event received");
+      break;
+
+    case "pull_request":
+      console.log("Pull request event");
+      break;
+
+    case "issues":
+      console.log("Issue event");
+      break;
+
+    default:
+      console.log("Unhandled event:", event);
+  }
+
+  return res.status(200).json({ message: "Webhook received" });
+}
+
+
+================================================================================
+backend\tests\auth.test.js:
+================================================================================
+
+
+================================================================================
+backend\tests\repo.test.js:
+================================================================================
+
+
+================================================================================
+frontend\README.md:
+================================================================================
+
+
+================================================================================
+frontend\package.json:
+================================================================================
+
+
+================================================================================
+frontend\public\index.html:
+================================================================================
+
+
+================================================================================
+frontend\src\index.js:
+================================================================================
+
+
