@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { tasksApi } from '../../api/tasks';
 import { taskClaimsApi } from '../../api/taskClaims';
 import Layout from '../../components/Layout';
@@ -12,7 +12,6 @@ export default function TaskWorkbench() {
   const [prUrl, setPrUrl] = useState('');
   const [helpQuestion, setHelpQuestion] = useState('');
   const [showHelpResponse, setShowHelpResponse] = useState(false);
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data: taskData, isLoading } = useQuery({

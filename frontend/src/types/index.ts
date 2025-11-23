@@ -93,9 +93,10 @@ export interface TaskClaim {
   learner?: User;
 }
 
-export interface ApiResponse<T> {
+export interface ApiResponse<T = any> {
   success: boolean;
   message?: string;
+  data?: T;
   [key: string]: any;
 }
 

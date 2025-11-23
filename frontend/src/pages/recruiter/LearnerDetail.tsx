@@ -71,7 +71,7 @@ export default function LearnerDetail() {
             <div className="mb-6">
               <h2 className="text-sm font-medium text-gray-400 mb-3">Skills</h2>
               <div className="flex flex-wrap gap-2">
-                {learner.skills.map((skill) => (
+                {learner.skills.map((skill: string) => (
                   <span
                     key={skill}
                     className="px-3 py-1 text-sm bg-accent-blue/20 text-accent-blue rounded-full border border-accent-blue/30"
