@@ -16,10 +16,6 @@ export const config = {
   },
 } as const;
 
-// Validate required env vars in production
-if (config.nodeEnv === "production") {
-  if (!config.github.appId || !config.github.privateKey) {
-    throw new Error("GITHUB_APP_ID and GITHUB_PRIVATE_KEY are required in production");
-  }
-}
+// Note: GitHub credentials are optional - app will use mock data if not provided
+// This allows the app to run in production without GitHub App setup initially
 
