@@ -157,7 +157,7 @@ function findTechCommand(techStack: string): { command: string; args: string[]; 
 export async function generateStarterCode(
   techStack: string,
   projectName: string
-): Promise<Record<string, string> | null> {
+): Promise<{ files: Record<string, string> } | null> {
   const techCommand = findTechCommand(techStack);
   
   if (!techCommand) {

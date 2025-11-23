@@ -120,9 +120,14 @@ export const projectService = {
       throw new AppError(400, "Project with this slug already exists");
     }
 
+    // Extract only the fields that belong to Prisma schema
+    const { techStackTemplate, installationId, ...projectData } = input;
+    
     return prisma.project.create({
       data: {
-        ...input,
+        ...projectData,
+        githubOrg: projectData.githubOrg || "ced-projects", // Ensure it's always a string
+        githubRepo: projectData.githubRepo || input.slug, // Ensure it's always a string
         status: input.status || ProjectStatus.ACTIVE,
         featured: input.featured || false,
       },
@@ -144,8 +149,10 @@ export const projectService = {
       throw new AppError(404, `GitHub installation ${input.installationId} not found`);
     }
 
-    const githubOrg = installation.account?.login || input.githubOrg || "ced-projects";
-    const githubRepo = input.githubRepo || input.slug;
+    // Handle both user and organization account types
+    const account = installation.account as any;
+    const githubOrg = (account?.login || account?.name || input.githubOrg || "ced-projects") as string;
+    const githubRepo = (input.githubRepo || input.slug) as string;
 
     // Create GitHub repository
     let repo;

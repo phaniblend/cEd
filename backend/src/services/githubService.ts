@@ -136,7 +136,9 @@ export const githubService = {
         throw new AppError(404, `Installation ${installationId} not found`);
       }
 
-      const org = installation.account?.login;
+      // Handle both user and organization account types
+      const account = installation.account as any;
+      const org = account?.login || account?.name;
       if (!org) {
         throw new AppError(400, "Installation account not found");
       }
