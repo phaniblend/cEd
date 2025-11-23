@@ -20,17 +20,17 @@ if [ -n "$DATABASE_URL" ]; then
     prisma.user.count().then(count => {
       console.log(count);
       prisma.\$disconnect();
-    }).catch(() => {
+    }).catch((err) => {
       console.log('0');
       prisma.\$disconnect();
     });
   " 2>/dev/null || echo "0")
   
-  if [ "$USER_COUNT" = "0" ]; then
+  if [ "$USER_COUNT" = "0" ] || [ -z "$USER_COUNT" ]; then
     echo "Database is empty, running seed..."
     npx tsx prisma/seed.ts || echo "Seed failed, continuing..."
   else
-    echo "Database already has data, skipping seed"
+    echo "Database already has $USER_COUNT users, skipping seed"
   fi
 else
   echo "DATABASE_URL not set, skipping database setup"

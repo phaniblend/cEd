@@ -17,11 +17,7 @@ async function runMigrations() {
     // Check if we need to seed
     const userCount = await prisma.user.count();
     if (userCount === 0) {
-      logger.info("Database is empty, running seed...");
-      // Import and run seed
-      const { default: seed } = await import("../../prisma/seed.js");
-      // Note: seed.ts exports a main function, so we need to handle it differently
-      logger.info("Seed will be run separately if needed");
+      logger.info("Database is empty - seed will be run by start script if needed");
     } else {
       logger.info(`Database already has ${userCount} users, skipping seed`);
     }
