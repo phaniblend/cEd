@@ -12,7 +12,11 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "postinstall": "prisma generate",
+    "db:setup": "prisma generate && prisma db push && tsx prisma/seed.ts",
+    "migrate": "prisma generate && prisma db push --accept-data-loss",
+    "start:migrate": "npm run migrate && npm start"
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",
